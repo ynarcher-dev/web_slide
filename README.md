@@ -126,11 +126,28 @@ Cloudflare Workers에 배포한다. Next.js 결과물을 `@opennextjs/cloudflare
 | `pnpm cf:deploy`  | 로컬에서 직접 배포 (wrangler 로그인 필요) |
 | `pnpm cf:upload`  | 새 버전만 업로드                          |
 
-Cloudflare 대시보드에는 빌드 명령을 `pnpm cf:build`로 두고, `NEXT_PUBLIC_*` 세 개를 **빌드 변수**로
-등록해야 한다. 런타임 변수로는 동작하지 않는다. 값이 없으면 빌드 중 환경 변수 검증이 실패한다.
+### 터미널에서 배포
 
-> Windows에서 `pnpm cf:build`를 돌리려면 개발자 모드가 필요하다. 심볼릭 링크를 만들지 못하면
-> `EPERM ... symlink`로 멈춘다. Cloudflare 빌드 환경(Linux)에는 이 제약이 없다.
+빌드가 로컬에서 돌기 때문에 대시보드 빌드 변수를 등록하지 않아도 된다.
+
+```bash
+pnpm exec wrangler login   # 최초 1회
+pnpm cf:build
+pnpm cf:deploy
+```
+
+준비물 두 가지가 있다.
+
+- **Windows에서는 개발자 모드가 필요하다.** `cf:build`가 `node_modules`의 심볼릭 링크를 다시 만드는데,
+  권한이 없으면 `EPERM ... symlink`로 멈춘다. 설정 → 시스템 → 개발자용에서 켠다.
+  macOS, Linux와 Cloudflare 빌드 환경에는 이 제약이 없다.
+- **`.env.production.local`에 배포 도메인을 넣는다.** `NEXT_PUBLIC_SITE_URL`이 빌드에 박히므로,
+  `.env.local`의 localhost 값이 그대로 배포되면 공유 링크가 깨진다.
+
+### 대시보드에서 배포
+
+Git 푸시로 자동 빌드하려면 빌드 명령을 `pnpm cf:build`로 두고, `NEXT_PUBLIC_*` 세 개를
+**빌드 변수**로 등록한다. 런타임 변수로는 동작하지 않고, 값이 없으면 빌드 중 환경 변수 검증이 실패한다.
 
 전체 절차와 제약은 [배포 문서](docs/technical/deployment.md)에 있다.
 

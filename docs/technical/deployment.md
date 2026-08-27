@@ -128,17 +128,64 @@ pnpm cf:build
 
 DB 마이그레이션을 적용한 뒤 커밋을 푸시하면 Cloudflare가 4.1의 설정으로 빌드한다.
 
-### 4.3 로컬에서 Worker 실행
+### 4.3 터미널에서 직접 배포
 
-```bash
-pnpm cf:preview   # 번들을 만들고 workerd로 띄운다
-pnpm cf:deploy    # 로컬에서 직접 배포한다 (wrangler 로그인 필요)
+대시보드 빌드를 쓰지 않고 개발자 장비에서 바로 올리는 방법이다.
+빌드가 로컬에서 돌기 때문에 **대시보드의 빌드 변수를 등록하지 않아도 된다.**
+
+#### 준비 (최초 1회)
+
+**1. Windows라면 개발자 모드를 켠다.**
+
+`pnpm cf:build`는 `node_modules`의 심볼릭 링크를 다시 만든다. Windows는 기본적으로
+심볼릭 링크 생성에 권한이 필요해서, 켜지 않으면 다음에서 멈춘다.
+
+```
+Error: EPERM: operation not permitted, symlink
 ```
 
-> **Windows 주의:** `pnpm cf:build`는 `node_modules`의 심볼릭 링크를 다시 만든다.
-> Windows에서는 개발자 모드를 켜거나 관리자 권한으로 실행해야 하며, 그렇지 않으면
-> `EPERM: operation not permitted, symlink`로 멈춘다. Cloudflare 빌드 환경은 Linux라
-> 이 제약이 없다. 로컬에서 Linux 기준으로 확인하려면 Docker의 `node:24-bookworm`에서 돌린다.
+설정 → 시스템 → 개발자용 → **개발자 모드**를 켜고 터미널을 다시 연다.
+macOS와 Linux, 그리고 Cloudflare 빌드 환경에는 이 제약이 없다.
+
+**2. wrangler에 로그인한다.**
+
+```bash
+pnpm exec wrangler login   # 브라우저가 열린다
+pnpm exec wrangler whoami  # 계정이 나오면 성공
+```
+
+**3. 배포용 주소를 `.env.production.local`에 넣는다.**
+
+`NEXT_PUBLIC_*`는 빌드 시점에 번들에 박힌다. `.env.local`의 `NEXT_PUBLIC_SITE_URL`이
+`http://localhost:3000`이면 **배포된 자료의 공유 링크도 localhost를 가리킨다.**
+
+Next.js는 프로덕션 빌드에서 `.env.production.local`을 `.env.local`보다 먼저 읽는다.
+개발 설정을 그대로 둔 채 배포 값만 덮어쓰려면 이 파일을 쓴다.
+
+```bash
+# .env.production.local  (커밋하지 않는다)
+NEXT_PUBLIC_SITE_URL=https://<배포 도메인>
+```
+
+Supabase 값은 개발과 같은 프로젝트를 쓴다면 `.env.local`의 값이 그대로 적용된다.
+
+#### 배포
+
+```bash
+pnpm validate     # 1. 검증
+pnpm db:push      # 2. DB 스키마 (애플리케이션보다 먼저)
+pnpm cf:build     # 3. Worker 번들 생성
+pnpm cf:deploy    # 4. 배포. 트래픽이 새 버전으로 넘어간다
+```
+
+`pnpm cf:deploy`는 이미 만들어 둔 번들을 올리므로 `cf:build`를 먼저 돌려야 한다.
+트래픽을 넘기지 않고 버전만 올리려면 `pnpm cf:upload`를 쓴다.
+
+올리기 전에 결과를 직접 열어 보려면 다음을 쓴다.
+
+```bash
+pnpm cf:preview   # 번들을 workerd로 띄운다. 실제 런타임과 같은 환경이다
+```
 
 ### 배포 후 점검
 

@@ -341,8 +341,10 @@
 - [x] Cloudflare Workers 배포 설정을 만든다. `@opennextjs/cloudflare`, `wrangler.jsonc`,
       `open-next.config.ts`, `cf:*` 스크립트를 추가하고 Linux 컨테이너에서 번들 생성과
       `wrangler deploy --dry-run`까지 확인했다. (번들 10.7MB / gzip 2.1MB)
-- [ ] Cloudflare 대시보드에서 빌드 명령을 `pnpm cf:build`로 바꾸고 `NEXT_PUBLIC_*` 세 개를
-      빌드 변수로 등록한다. 저장소에서 할 수 없는 작업이라 사람이 직접 해야 한다.
+- [x] 터미널에서 배포하는 경로를 문서화한다. 로컬 빌드가 `.env.local`을 쓰므로 대시보드 빌드 변수가
+      필요 없다. Windows 개발자 모드와 `.env.production.local`이 전제 조건이다.
+- [ ] 실제로 한 번 배포하고 결과를 확인한다. `pnpm exec wrangler login` 후
+      `pnpm cf:build && pnpm cf:deploy`. 사람이 브라우저 인증을 해야 해서 대신할 수 없다.
 - [x] DB 마이그레이션 적용 절차를 검증한다. (`pnpm db:push` 재실행 시 `up to date`)
 - [x] 오류 모니터링 도입 여부를 결정한다. (도입하지 않음. 배포 문서 6장에 근거 기록)
 - [x] README에 설치, 실행, 테스트와 빌드 방법을 작성한다.
@@ -386,8 +388,8 @@
       충분한지, 상단에 얇은 손잡이 표시가 필요한지 실제 사용 후 결정한다.
 - [ ] 전체화면 발표는 화면 비율이 16:9가 아니면 슬라이드를 늘려서 채운다. 16:10이나 21:9 화면에서 글자 왜곡이
       실제로 거슬리는지 확인하고, 필요하면 채우기와 여백 유지 중 고를 수 있게 할지 결정한다.
-- [ ] `pnpm cf:build`가 Windows에서 심볼릭 링크 권한 없이 실패한다. 개발자 모드를 켜게 안내할지,
-      Docker로 확인하는 절차만 문서에 남길지 정한다. 현재는 배포 문서에 두 방법을 모두 적어 두었다.
+- [ ] `NEXT_PUBLIC_SITE_URL`이 잘못 박힌 채 배포되어도 빌드가 성공한다. 공유 링크가 localhost를
+      가리키게 되므로, `cf:build` 앞에 값을 확인하는 단계를 넣을지 정한다. 현재는 문서 안내뿐이다.
 - [ ] 자바스크립트를 끈 브라우저에서는 세션 쿠키가 갱신되지 않는다. 미들웨어를 쓸 수 없어 생긴 제약이며,
       실제로 문제가 되는지 확인한 뒤 서버 액션 기반 갱신을 넣을지 정한다.
 - [ ] 배포 명령이 `npx wrangler versions upload`라 새 버전만 올라가고 트래픽은 넘어가지 않는다.
@@ -404,8 +406,8 @@
 - 그 전 완료 작업: 슬라이드 유형 2종 추가. 이미지 슬라이드(Supabase Storage 업로드, 소유자 RLS, 삭제 시 정리)와 HTML 슬라이드(격리된 iframe 뷰어)를 본문과 같은 레이아웃으로 구현
 - 그 전 완료 작업: 발표 화면 개선 요청 반영. 전체화면 가로세로 100% 채우기, 좌우 가장자리 이동 버튼 제거, 조작 중 초록 테두리, 화면을 눌러 조작을 켜고 끄기, 발표 컨트롤을 상단 hover 표시로 옮기고 그만큼 웹페이지 영역 확대
 - 검증 상태: `pnpm validate` 통과(타입 검사, 린트, 포맷, 단위 테스트 197개, 파일 길이 검사 160개), chromium E2E 21개 통과(인증 6건 포함), Linux 컨테이너에서 `pnpm cf:build`와 `wrangler deploy --dry-run` 통과, `pnpm db:verify-rls` 22/22 통과(Storage 정책 4건 포함), 프로덕션 빌드 통과. `pnpm db:types`를 두 번 실행해 같은 결과가 나오는 것과 `pnpm format:check`를 깨지 않는 것을 확인. `pnpm e2e:browsers` 3건(firefox·webkit·msedge)은 직전 실행 결과를 유지
-- 다음 권장 작업: Cloudflare 대시보드에서 빌드 명령을 `pnpm cf:build`로 바꾸고 `NEXT_PUBLIC_*` 세 개를 빌드 변수로 등록한 뒤 배포가 성공하는지 확인한다. 그다음 [수동 확인 시나리오](docs/technical/mvp-manual-scenario.md)를 배포된 화면에서 사람이 한 번 수행하고 문서 끝의 기록 표를 채운다
-- 현재 알려진 차단 요소: Cloudflare 대시보드의 빌드 명령과 빌드 변수는 저장소에서 바꿀 수 없어 사람이 직접 등록해야 한다. `pnpm cf:build`는 Windows에서 개발자 모드가 꺼져 있으면 심볼릭 링크 권한으로 실패한다(Linux 빌드 환경은 무관). 그 밖에 `pnpm db:types`는 Docker 데몬이 떠 있어야 하고(`SUPABASE_ACCESS_TOKEN`이 있으면 Docker 없이 가능), E2E를 돌리려면 새 환경에서 `pnpm exec playwright install chromium`을, `pnpm e2e:browsers`를 쓰려면 `pnpm exec playwright install firefox webkit`을 먼저 실행해야 한다
+- 다음 권장 작업: 개발자 모드를 켜고 `pnpm exec wrangler login` 후 `pnpm cf:build && pnpm cf:deploy`로 한 번 배포한다. 배포 전에 `.env.production.local`에 실제 도메인을 넣어야 공유 링크가 맞는다. 그다음 [수동 확인 시나리오](docs/technical/mvp-manual-scenario.md)를 배포된 화면에서 사람이 한 번 수행하고 문서 끝의 기록 표를 채운다
+- 현재 알려진 차단 요소: 터미널 배포에는 Windows 개발자 모드와 `wrangler login`이 필요하며 둘 다 사람이 직접 해야 한다. 대시보드 빌드를 쓴다면 빌드 명령과 `NEXT_PUBLIC_*` 빌드 변수를 등록해야 한다. 그 밖에 `pnpm db:types`는 Docker 데몬이 떠 있어야 하고(`SUPABASE_ACCESS_TOKEN`이 있으면 Docker 없이 가능), E2E를 돌리려면 새 환경에서 `pnpm exec playwright install chromium`을, `pnpm e2e:browsers`를 쓰려면 `pnpm exec playwright install firefox webkit`을 먼저 실행해야 한다
 
 ## 10. 변경 기록
 
@@ -445,6 +447,7 @@
 | 2026-08-27 | `pnpm db:types`를 Docker로 실제 실행해 손으로 쓴 `database.types.ts`를 생성 결과로 교체. 컬럼, enum, 두 함수가 모두 일치해 스키마 기준이 확인됨. 생성 직후 Prettier를 돌려 재생성이 `pnpm format:check`를 깨지 않게 함                                                                                                                                                                                                |
 | 2026-08-27 | 슬라이드 유형 추가와 발표 리모컨 변경을 제품 기획서와 개발 스택 문서에 반영. 두 문서가 여전히 "본문은 웹페이지뿐", "이미지 업로드 없음", "화면 가장자리 이동 버튼"을 말하고 있어 실제 화면과 어긋났음                                                                                                                                                                                                                 |
 | 2026-08-27 | 기준 대비 달라진 점만 모은 [보완 사항 문서](docs/product/scope-updates.md)를 추가. 기획서와 스택 문서는 항상 현재 제품을 설명하므로 무엇이 왜 바뀌었는지가 남지 않았음                                                                                                                                                                                                                                                |
+| 2026-08-27 | 터미널 배포 경로를 기본으로 문서화. 로컬 빌드가 `.env.local`을 쓰므로 대시보드 빌드 변수가 필요 없다. 다만 `NEXT_PUBLIC_SITE_URL`이 번들에 박히므로 배포 도메인은 `.env.production.local`에 따로 둔다. Next.js가 프로덕션 빌드에서 이 파일을 `.env.local`보다 먼저 읽는다                                                                                                                                             |
 | 2026-08-27 | 배포 대상을 **Cloudflare Workers**로 확정하고 `@opennextjs/cloudflare` 어댑터, `wrangler.jsonc`, `open-next.config.ts`, `cf:*` 스크립트를 추가. 증분 캐시(R2/KV)와 이미지 바인딩은 두지 않았다. 데이터 화면이 모두 동적 라우트이고 로고가 `unoptimized`라 쓸 일이 없다                                                                                                                                                |
 | 2026-08-27 | **`src/proxy.ts`와 `src/lib/supabase/proxy-session.ts`를 삭제하고 인증 경계를 페이지로 옮김.** Next.js 16의 `proxy.ts`는 Node 런타임 고정이라(`runtime` 옵션은 오류) `@opennextjs/cloudflare`가 빌드 단계에서 거부한다. 보호 화면은 `requireUser`가 막고, 로그인 화면은 `getCurrentUser`로 우회시키며, 세션 쿠키 갱신은 보호 레이아웃의 `SessionRefresher`가 브라우저에서 맡는다. 기존 E2E 인증 6건이 그대로 통과한다 |
 | 2026-08-27 | Next.js를 16.3.2에서 16.3.3으로 올림. `@opennextjs/cloudflare` 최신 버전의 peer 조건이 `>=16.3.3`이라 어댑터를 따라갈 수 있게 맞췄다. 어댑터 자체는 pnpm의 최소 배포 경과 정책을 지키는 1.20.2를 쓴다                                                                                                                                                                                                                 |
