@@ -1,0 +1,70 @@
+/**
+ * 전역 기본 스타일과 접근성 규칙.
+ * 화면별 스타일은 이 파일에 추가하지 않는다.
+ */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  /* 마우스 클릭에는 링을 표시하지 않고 키보드 이동에만 표시한다. */
+  :focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  /* 키보드 사용자만 볼 수 있는 본문 바로가기 링크. */
+  .skip-link {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 100;
+    transform: translateY(-200%);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-foreground);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+    transition: transform 150ms var(--ease-standard);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+/* 사용자가 모션 감소를 선택하면 전역 전환과 애니메이션을 최소화한다. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /*
+   * 진행 중임을 알리는 표시는 멈추면 의미를 잃으므로 예외로 둔다.
+   * `revert`로는 위 !important 선언을 되돌릴 수 없어 값을 다시 명시한다.
+   */
+  [data-keep-motion] {
+    animation-duration: 900ms !important;
+    animation-iteration-count: infinite !important;
+  }
+}

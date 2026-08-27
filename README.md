@@ -1,36 +1,148 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Web Slide
 
-## Getting Started
+슬라이드 템플릿 안에 실제 웹페이지를 삽입해, 설명과 제품 시연을 하나의 발표 흐름에서 진행하는 웹 프레젠테이션 도구다.
 
-First, run the development server:
+- 표지와 본문 두 가지 템플릿만 제공하고 레이아웃은 자동으로 계산한다.
+- 본문 콘텐츠는 16:9로 고정한 영역 하나이며, 웹페이지(iframe)·이미지·붙여 넣은 HTML 중 하나를 넣는다.
+- HTML 슬라이드에 넣을 장표는 [HTML 슬라이드 작성 프롬프트](docs/product/html-slide-prompt.md)의 기준을 따른다.
+- 발표 모드에서 슬라이드를 넘기다가 삽입한 웹페이지를 그대로 조작할 수 있다.
+- 읽기 전용 공유 링크와 서버 생성 PDF 내보내기를 지원한다.
+
+자세한 제품 범위는 [제품 기획서](docs/product/web-slide-product-plan.md), 기술 결정은 [개발 스택 문서](docs/technical/development-stack.md), 개발 진행 기준은 [AGENTS.md](AGENTS.md)에 있다.
+
+## 요구 사항
+
+| 항목     | 버전                                               |
+| -------- | -------------------------------------------------- |
+| Node.js  | 20.9 이상 (`--env-file-if-exists` 사용)            |
+| pnpm     | 11.9 이상                                          |
+| Supabase | 프로젝트 하나 (로컬 CLI 또는 원격 프로젝트)        |
+| Chromium | PDF 내보내기를 쓸 때만 필요. Playwright로 설치한다 |
+
+## 설치와 실행
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+
+# 환경 변수 준비
+cp .env.example .env.local   # 값은 아래 표를 참고해 채운다
+
+# DB 스키마 적용
+pnpm db:push
+
+# 개발용 데모 데이터(선택). 운영 DB에는 넣지 않는다
+pnpm db:seed
+
+# PDF 내보내기를 쓰거나 E2E를 돌릴 때 한 번만
+pnpm exec playwright install chromium
+
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`http://localhost:3000/presentations`로 접속한다. 로그인하지 않았다면 `/login`으로 이동한다. `pnpm db:seed`를 실행했다면 `demo@webslide.test` / `WebSlide!2026`으로 로그인할 수 있다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+루트 경로 `/`는 서비스 소개만 표시하는 화면이다. 실제 기능은 `/presentations` 아래에 있다.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 환경 변수
 
-## Learn More
+`.env.local`에 채운다. 예시는 [.env.example](.env.example)에 있다.
 
-To learn more about Next.js, take a look at the following resources:
+| 변수                                   | 필수   | 사용처                | 설명                                                                        |
+| -------------------------------------- | ------ | --------------------- | --------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`                 | 예     | 런타임(브라우저·서버) | 공유 링크와 PDF 생성기가 여는 절대 주소의 기준. 배포 도메인을 넣는다        |
+| `NEXT_PUBLIC_SUPABASE_URL`             | 예     | 런타임(브라우저·서버) | Supabase 프로젝트 URL                                                       |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 예     | 런타임(브라우저·서버) | Supabase publishable 키. 브라우저에 노출되며 접근은 RLS로 제한한다          |
+| `SUPABASE_DB_URL`                      | 아니오 | 로컬 스크립트 전용    | 마이그레이션·타입 생성·RLS 검증 스크립트가 쓰는 직접 연결 문자열. 커밋 금지 |
+| `SUPABASE_ACCESS_TOKEN`                | 아니오 | 로컬 스크립트 전용    | 있으면 Docker 없이 `pnpm db:types`를 실행한다                               |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`NEXT_PUBLIC_*` 세 개는 [src/lib/env.ts](src/lib/env.ts)에서 zod로 검증한다. 값이 없거나 형식이 틀리면 앱이 시작하면서 실패한다.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+서버 전용 비밀 키(`service_role` 등)는 애플리케이션 런타임에서 사용하지 않는다.
 
-## Deploy on Vercel
+## 명령어
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| 명령                     | 하는 일                                                     |
+| ------------------------ | ----------------------------------------------------------- |
+| `pnpm dev`               | 개발 서버                                                   |
+| `pnpm build`             | 프로덕션 빌드                                               |
+| `pnpm start`             | 빌드 결과 실행                                              |
+| `pnpm validate`          | 타입 검사 → 린트 → 포맷 검사 → 단위 테스트 → 파일 길이 검사 |
+| `pnpm typecheck`         | `tsc --noEmit`                                              |
+| `pnpm lint`              | ESLint                                                      |
+| `pnpm format`            | Prettier 적용                                               |
+| `pnpm format:check`      | Prettier 검사                                               |
+| `pnpm test`              | Vitest 단위·컴포넌트 테스트                                 |
+| `pnpm test:watch`        | Vitest watch                                                |
+| `pnpm e2e`               | Playwright E2E 전체(chromium). 개발 서버를 자동으로 띄운다  |
+| `pnpm e2e:browsers`      | firefox, webkit, msedge에서 지원 범위 스모크만 실행         |
+| `pnpm check:file-length` | 직접 작성한 소스가 500줄을 넘지 않는지 검사                 |
+| `pnpm db:push`           | `supabase/migrations`를 대상 DB에 적용                      |
+| `pnpm db:seed`           | `supabase/seed.sql` 적용. 개발·검증 환경 전용               |
+| `pnpm db:types`          | `src/types/database.types.ts` 재생성                        |
+| `pnpm db:verify-rls`     | 임시 사용자 두 명으로 RLS 정책을 확인하고 정리              |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`db:*` 명령은 `.env.local`의 `SUPABASE_DB_URL`을 사용한다.
+
+## 테스트
+
+```bash
+pnpm validate       # 타입·린트·포맷·단위 테스트·파일 길이
+pnpm e2e            # chromium 전체. axe 접근성 검사와 콘솔 오류 검사 포함
+pnpm e2e:browsers   # firefox, webkit, msedge 지원 범위 스모크
+pnpm db:verify-rls  # RLS 정책 재검증
+```
+
+E2E는 다음을 전제로 한다.
+
+- `pnpm db:seed`로 만든 데모 계정이 대상 DB에 있어야 한다.
+- 일부 테스트가 `https://example.com`을 iframe으로 띄우므로 네트워크가 필요하다.
+- `pnpm e2e:browsers`는 firefox와 webkit 실행 파일이 필요하다. `pnpm exec playwright install firefox webkit`으로 한 번 설치한다.
+
+모든 E2E가 같은 데모 계정을 쓰고 Supabase 로그아웃이 그 사용자의 모든 세션을 끊기 때문에 `workers: 1`로 순차 실행한다.
+
+## 라우트
+
+| 경로                               | 설명                                                          |
+| ---------------------------------- | ------------------------------------------------------------- |
+| `/`                                | 서비스 소개                                                   |
+| `/login`                           | 이메일 + 비밀번호 로그인과 회원가입                           |
+| `/presentations`                   | 내 프레젠테이션 목록, 만들기·이름 변경·삭제·설정              |
+| `/presentations/[id]/edit`         | 3단 편집기: 슬라이드 목록, 미리보기, 속성 패널                |
+| `/presentations/[id]/present`      | 전체화면 발표                                                 |
+| `/presentations/[id]/pdf`          | PDF 생성용 화면. 서버 브라우저가 연다                         |
+| `/presentations/[id]/pdf/download` | PDF를 만들어 내려주는 라우트 핸들러                           |
+| `/share/[shareId]`                 | 공개 프레젠테이션의 읽기 전용 발표                            |
+| `/design-preview`                  | 내부 확인용 디자인 토큰·공통 UI 화면. 프로덕션 빌드에서는 404 |
+
+`/presentations` 아래는 [src/proxy.ts](src/proxy.ts)가 1차로 막고, 각 페이지가 `getCurrentUser`로 다시 확인한다.
+
+## 프로젝트 구조
+
+```text
+src/
+├─ app/            라우트와 화면 조립
+├─ features/       제품 기능 단위 코드
+│  ├─ auth/
+│  ├─ presentations/
+│  ├─ slide-editor/
+│  ├─ slide-renderer/   편집·발표·PDF가 공유하는 시각 렌더러
+│  └─ pdf-export/
+├─ components/     공통 UI와 레이아웃
+├─ lib/            Supabase 클라이언트, 검증, 경로, 환경 변수
+├─ styles/         디자인 토큰과 Pretendard
+└─ types/          DB 타입과 도메인 타입
+
+supabase/
+├─ migrations/     스키마 변경 이력
+└─ seed.sql        개발용 데모 데이터
+```
+
+직접 작성한 `.ts`, `.tsx`, `.css`는 500줄을 넘지 않는다. 자세한 분리 기준은 [개발 스택 문서 8장](docs/technical/development-stack.md)에 있다.
+
+## 배포
+
+Node.js 런타임과 Chromium이 함께 있는 환경이 필요하다. 절차와 환경별 주의사항은 [배포 문서](docs/technical/deployment.md)에 있다.
+
+## 지원 브라우저
+
+Chrome, Edge, Firefox, Safari의 최신 두 개 버전을 지원 대상으로 한다. 확인 범위와 알려진 차이는 [배포 문서의 지원 브라우저](docs/technical/deployment.md#5-지원-브라우저)를 참고한다.

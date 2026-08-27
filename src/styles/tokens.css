@@ -1,0 +1,94 @@
+/**
+ * Web Slide 디자인 토큰.
+ *
+ * - `@theme` 블록의 값은 Tailwind 유틸리티(`bg-brand-500` 등)로 그대로 사용한다.
+ * - 슬라이드 렌더링 값은 편집기, 발표 화면, PDF에서 함께 쓰므로 `:root` CSS 변수로 둔다.
+ * - 화면별 스타일은 이 파일에 추가하지 않는다.
+ */
+
+@theme {
+  --font-sans: var(--font-pretendard), sans-serif;
+
+  /* 브랜드 색상 (Y&ARCHER 레드) */
+  --color-brand-50: #fef3f2;
+  --color-brand-100: #fee4e2;
+  --color-brand-200: #fecdc9;
+  --color-brand-300: #fdaaa4;
+  --color-brand-400: #f97970;
+  --color-brand-500: #e42317;
+  --color-brand-600: #cc1f14;
+  --color-brand-700: #a81a10;
+  --color-brand-800: #8a1a12;
+  --color-brand-900: #731c16;
+
+  /* 중립 색상 */
+  --color-ink-50: #fafafa;
+  --color-ink-100: #f4f4f5;
+  --color-ink-200: #e4e4e7;
+  --color-ink-300: #d4d4d8;
+  --color-ink-400: #a1a1aa;
+  --color-ink-500: #71717a;
+  --color-ink-600: #52525b;
+  --color-ink-700: #3f3f46;
+  --color-ink-800: #27272a;
+  --color-ink-900: #18181b;
+  --color-ink-950: #09090b;
+
+  /* 상태 색상 */
+  --color-danger-50: #fef2f2;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+  --color-success-50: #f0fdf4;
+  --color-success-600: #16a34a;
+  --color-warning-50: #fffbeb;
+  --color-warning-600: #d97706;
+
+  /* 의미 기반 색상 */
+  --color-canvas: #f4f4f5;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #fafafa;
+  --color-border-subtle: #e4e4e7;
+  --color-border-strong: #d4d4d8;
+  --color-foreground: #18181b;
+  /* canvas(#f4f4f5) 위에서도 WCAG AA 4.5:1을 만족해야 하므로 ink-500 대신 ink-600을 쓴다. */
+  --color-foreground-muted: #52525b;
+  --color-foreground-subtle: #71717a;
+
+  --radius-control: 0.5rem;
+  --radius-panel: 0.75rem;
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+:root {
+  /* 슬라이드 기준 좌표계 (16:9 고정) */
+  --slide-width: 1920;
+  --slide-height: 1080;
+  --slide-aspect-ratio: 16 / 9;
+
+  /* 슬라이드 공통 색상 */
+  --slide-background: #ffffff;
+  --slide-foreground: #18181b;
+  --slide-muted-foreground: #71717a;
+  --slide-footer-color: #71717a;
+  --slide-accent: var(--color-brand-500);
+
+  /* 표지 배경 tint: 0(흰색) ~ 100(브랜드 색 최대 적용) */
+  --slide-cover-tint: 0;
+  --slide-cover-tint-max-alpha: 0.12;
+
+  /* 1920 기준 슬라이드 내부 여백 */
+  --slide-padding-x: 120;
+  --slide-padding-y: 80;
+
+  /* 편집기 레이아웃 */
+  --editor-list-width: 17rem;
+  --editor-properties-width: 20rem;
+  --editor-header-height: 3.5rem;
+
+  /* 포커스 링 */
+  --focus-ring-color: var(--color-brand-500);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+}

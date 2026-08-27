@@ -1,0 +1,263 @@
+/**
+ * 슬라이드 내부 스타일.
+ *
+ * 모든 값은 1920×1080 기준 좌표계의 px다. 실제 크기 조정은 `SlideStage`가 담당한다.
+ * 편집 미리보기, 발표 화면, PDF가 이 파일을 함께 사용하므로 화면별 예외를 넣지 않는다.
+ */
+
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--slide-aspect-ratio);
+  overflow: hidden;
+  background-color: var(--slide-background);
+}
+
+/*
+ * 전체화면 발표는 화면에 검은 여백을 남기지 않는다.
+ * 16:9 잠금을 풀고 상자를 그대로 채우며, 늘어난 배율은 `SlideStage`가 축마다 따로 계산한다.
+ */
+.stageFill {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--slide-width) * 1px);
+  height: calc(var(--slide-height) * 1px);
+  transform-origin: top left;
+  color: var(--slide-foreground);
+}
+
+.surface {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------------ 표지 */
+
+.cover {
+  background-color: var(--slide-cover-background, var(--slide-background));
+  padding: 80px 120px 72px;
+}
+
+.coverTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.coverBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 36px;
+}
+
+.coverAccent {
+  width: 168px;
+  height: 10px;
+  border-radius: 999px;
+  background-color: var(--slide-accent);
+}
+
+.coverTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  font-size: 104px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.coverSubtitle {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 40px;
+  line-height: 1.4;
+  color: var(--slide-muted-foreground);
+}
+
+.coverBottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 48px;
+}
+
+.coverAuthor {
+  font-size: 32px;
+  font-weight: 500;
+}
+
+/* ------------------------------------------------------------------ 본문 */
+
+/*
+ * 본문 여백은 웹페이지 영역을 최대한 크게 잡는 선에서 정한다.
+ * 프레임 높이가 곧 가로 폭을 정하므로 위아래 여백을 줄이는 것이 가장 크게 먹힌다.
+ */
+.content {
+  padding: 44px 64px 32px;
+}
+
+.contentTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 64px;
+}
+
+.contentHeading {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pageName {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--slide-accent);
+}
+
+.contentTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.contentSubtitle {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  font-size: 28px;
+  line-height: 1.4;
+  color: var(--slide-muted-foreground);
+}
+
+.contentMain {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 8px;
+}
+
+.contentFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 24px;
+  color: var(--slide-footer-color);
+}
+
+.pageNumber {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------- 웹 프레임 */
+
+.frame {
+  position: relative;
+  height: 100%;
+  aspect-ratio: var(--slide-aspect-ratio);
+  overflow: hidden;
+  border-radius: 16px;
+  border: 2px solid var(--slide-frame-border, #e4e4e7);
+  background-color: #ffffff;
+}
+
+/* 웹페이지를 직접 조작할 수 있는 동안에는 테두리를 초록색으로 바꿔 활성 상태를 알린다. */
+.frame[data-interactive="true"] {
+  border-color: var(--slide-frame-active-border, #16a34a);
+  box-shadow: 0 0 0 6px rgb(22 163 74 / 0.2);
+}
+
+.framePlaceholder {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-style: dashed;
+  background-color: #fafafa;
+  font-size: 28px;
+  color: var(--slide-muted-foreground);
+}
+
+/* 그림은 잘리지 않게 프레임 안에 맞춘다. 남는 자리는 프레임 배경색이 된다. */
+.frameImage {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+/*
+ * 붙여 넣은 HTML은 프레임을 그대로 채운다. 웹페이지처럼 기준 뷰포트로 그린 뒤 축소하지 않고,
+ * 안쪽에서 남는 자리를 쓰도록 둔다. 붙여 넣는 조각은 대개 고정 크기 배치가 아니기 때문이다.
+ */
+.frameHtml {
+  height: 100%;
+  width: 100%;
+  border: 0;
+  background-color: #ffffff;
+}
+
+.frameViewport {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  border: 0;
+}
+
+.frameOverlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+}
+
+/*
+ * 눌러서 조작을 켤 수 있는 덮개다. 누를 수 있다는 것만 hover로 알린다.
+ * 초록은 조작 중이라는 뜻으로만 쓰므로 여기서는 중립색을 쓴다.
+ */
+.frameActivator {
+  cursor: pointer;
+}
+
+.frameActivator:hover {
+  box-shadow: inset 0 0 0 6px rgb(9 9 11 / 0.1);
+}
+
+.frameStatus {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  font-size: 26px;
+  color: var(--slide-muted-foreground);
+}

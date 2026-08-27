@@ -1,0 +1,116 @@
+/**
+ * 발표 화면 전용 스타일.
+ *
+ * 슬라이드 자체의 디자인은 `slide-renderer`가 담당한다.
+ * 이 파일에는 화면을 꽉 채우는 배치와 컨트롤 표시 규칙만 둔다.
+ */
+
+.player {
+  --player-padding: 1rem;
+
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  background-color: #09090b;
+}
+
+.viewport {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--player-padding);
+}
+
+/*
+ * 높이가 모자라면 16:9를 지키기 위해 폭을 줄인다.
+ * 슬라이드 레이어가 모두 absolute이므로 이 상자가 직접 높이를 가져야 한다.
+ */
+.slideBox {
+  position: relative;
+  width: min(100%, calc((100dvh - var(--player-padding) * 2) * 16 / 9));
+  aspect-ratio: var(--slide-aspect-ratio);
+}
+
+/*
+ * 전체화면에서는 화면을 가로세로 모두 100%로 채운다.
+ * 여백과 16:9 잠금을 함께 풀어야 검은 띠가 남지 않는다.
+ */
+.player[data-fullscreen="true"] {
+  --player-padding: 0rem;
+}
+
+.player[data-fullscreen="true"] .slideBox {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+.layer[data-active="false"] {
+  pointer-events: none;
+}
+
+/*
+ * 컨트롤은 화면 위쪽에 접혀 있다가 포인터가 위로 오면 내려온다.
+ * DOM에서 사라지지는 않는다. 키보드로 포커스를 옮기면 다시 내려와야 하기 때문이다.
+ * 접힌 동안 슬라이드 클릭을 가로채지 않도록 층 자체는 클릭을 받지 않는다.
+ */
+.controlsLayer {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  pointer-events: none;
+}
+
+.controlsLayer[data-visible="false"] .controls {
+  transform: translateY(calc(-100% - 0.75rem));
+  opacity: 0;
+}
+
+/* 포인터가 컨트롤 위에 있거나 키보드 포커스가 안에 있으면 계속 내려와 있다. */
+.controlsLayer:focus-within .controls,
+.controlsLayer:hover .controls {
+  transform: none;
+  opacity: 1;
+}
+
+.controls {
+  pointer-events: auto;
+  transition:
+    transform 200ms var(--ease-standard),
+    opacity 200ms var(--ease-standard);
+  display: flex;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-panel);
+  background-color: rgb(9 9 11 / 0.82);
+  padding: 0.5rem 0.75rem;
+  color: #ffffff;
+}
+
+.pageIndicator {
+  padding-inline: 0.5rem;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 0.7);
+}
