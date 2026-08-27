@@ -10,7 +10,7 @@ const subscribeToNothing = () => () => {};
  *
  * 서버 HTML에 iframe이 들어 있으면 하이드레이션 전에 로딩이 끝날 수 있고,
  * 그러면 React가 로딩 완료 이벤트를 아무도 받지 못한다. 그래서 iframe은 이 값이
- * true가 된 뒤에 만든다. 편집, 발표, PDF 화면이 모두 같은 규칙을 따른다.
+ * true가 된 뒤에 만든다. 편집, 발표, 공유 화면이 모두 같은 규칙을 따른다.
  */
 export function useMounted(): boolean {
   return useSyncExternalStore(

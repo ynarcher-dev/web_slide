@@ -14,9 +14,9 @@
 | 애니메이션    | Motion for React               | 슬라이드 전환과 편집기 인터랙션             |
 | DB/Auth       | Supabase                       | PostgreSQL, 사용자 인증, RLS                |
 | 파일 저장     | Supabase Storage               | 향후 실제 파일 저장이 필요한 경우 최소 사용 |
-| PDF           | Playwright 기반 서버 생성      | 발표 화면 캡처 및 16:9 PDF 생성             |
+| 배포          | Cloudflare Workers             | `@opennextjs/cloudflare`로 변환해 업로드    |
 | 테스트        | Vitest + React Testing Library | 단위 및 컴포넌트 테스트                     |
-| E2E           | Playwright                     | 편집, 발표, PDF 핵심 흐름 검증              |
+| E2E           | Playwright                     | 편집, 발표, 공유 핵심 흐름 검증             |
 | 코드 품질     | ESLint + Prettier              | 정적 검사와 포맷 통일                       |
 | 패키지 관리   | pnpm                           | 빠르고 엄격한 의존성 관리                   |
 
@@ -24,7 +24,7 @@
 
 ### 2.1 TypeScript
 
-프레젠테이션, 슬라이드 템플릿, 웹 콘텐츠 설정과 Supabase 스키마를 하나의 타입 체계로 관리한다. JavaScript 대신 TypeScript를 사용하여 잘못된 슬라이드 데이터가 UI나 PDF 생성 단계까지 전달되는 문제를 줄인다.
+프레젠테이션, 슬라이드 템플릿, 웹 콘텐츠 설정과 Supabase 스키마를 하나의 타입 체계로 관리한다. JavaScript 대신 TypeScript를 사용하여 잘못된 슬라이드 데이터가 UI까지 전달되는 문제를 줄인다.
 
 Supabase CLI로 데이터베이스 타입을 생성하고 애플리케이션에서 그대로 사용한다.
 
@@ -35,7 +35,6 @@ Web Slide 편집기는 선택 상태, 자동 저장, 순서 변경, 미리보기
 - 로그인과 사용자 세션 처리
 - 프레젠테이션 목록 및 공유 페이지 라우팅
 - 서버에서 안전하게 처리해야 하는 로직
-- PDF 생성 요청 API
 - 향후 배포 최적화
 
 편집기와 발표 화면은 Client Component로 구현하고, 초기 데이터 조회와 권한 확인은 Server Component 또는 서버 로직에서 처리한다.
@@ -58,7 +57,6 @@ Tailwind CSS를 기본 스타일 도구로 사용한다. 슬라이드의 실제 
 
 - 16:9 슬라이드 스케일 계산
 - iframe 1920×1080 렌더링 및 transform 처리
-- PDF 출력 전용 `@media print` 규칙
 - Tailwind 클래스만으로 읽기 어려운 복잡한 상태 스타일
 
 전역 CSS에 화면별 스타일을 계속 추가하지 않는다.
@@ -88,8 +86,8 @@ Tailwind CSS를 기본 스타일 도구로 사용한다. 슬라이드의 실제 
 
 CDN 링크 대신 자체 호스팅을 선택한 이유는 다음과 같다.
 
-- Playwright 서버 PDF 생성 시 외부 네트워크 상태와 무관하게 같은 글꼴로 렌더링해야 한다.
-- 편집 화면, 발표 화면, PDF의 줄바꿈과 자간이 동일해야 한다.
+- 외부 네트워크 상태와 무관하게 항상 같은 글꼴로 렌더링해야 한다.
+- 편집 화면, 발표 화면, 공유 화면의 줄바꿈과 자간이 동일해야 한다.
 - 외부 요청이 없으므로 초기 렌더링 지연과 FOUT 위험이 줄어든다.
 
 ## 3. Supabase 사용 범위
@@ -135,12 +133,30 @@ MVP 인증 범위:
 
 - `src/lib/supabase/client.ts`: 브라우저 클라이언트
 - `src/lib/supabase/server.ts`: Server Component와 Server Action용 클라이언트, `getCurrentUser`
-- `src/lib/supabase/proxy-session.ts`: 요청마다 세션 쿠키 갱신
-- `src/proxy.ts`: 세션 갱신과 경로 보호. Next.js 16에서 `middleware.ts`가 `proxy.ts`로 바뀌었다
+- `src/features/auth/require-user.ts`: 보호 화면의 서버 경계. 로그인하지 않았으면 로그인 화면으로 보낸다
+- `src/features/auth/components/session-refresher.tsx`: 브라우저에서 세션 쿠키를 갱신한다
+- `src/app/presentations/layout.tsx`: 보호 화면 공통 레이아웃. `SessionRefresher`를 마운트한다
 - `src/features/auth/`: 로그인 화면, Server Action, 검증 스키마
-- `src/lib/routes.ts`: 경로 상수와 보호 대상 경로 판정
+- `src/lib/routes.ts`: 경로 상수와 로그인 복귀 주소 생성
 
-보호 규칙은 `/presentations` 접두사 전체다. `proxy.ts`가 1차로 막고, 각 페이지에서도 `getCurrentUser`로 다시 확인한다.
+#### 미들웨어를 쓰지 않는다
+
+보호 규칙은 `/presentations` 접두사 전체이며, **각 페이지가 `requireUser`로 직접 막는다.**
+Server Action도 저마다 `getCurrentUser`를 다시 확인하고, DB 쪽 RLS가 마지막 한 겹을 맡는다.
+
+Next.js 16의 `proxy.ts`(구 `middleware.ts`)를 두지 않는 이유는 배포 대상 때문이다.
+`proxy.ts`는 Node 런타임 고정이고(`runtime` 옵션을 쓰면 오류) `@opennextjs/cloudflare`는
+Node 미들웨어를 빌드 단계에서 거부한다. 그래서 다음 두 가지를 옮겼다.
+
+| 미들웨어가 하던 일            | 옮긴 자리                                                |
+| ----------------------------- | -------------------------------------------------------- |
+| 비로그인 접근 차단            | 각 보호 페이지의 `requireUser(returnTo)`                 |
+| 로그인 사용자의 `/login` 우회 | 로그인 페이지의 `getCurrentUser` 확인                    |
+| 세션 쿠키 갱신                | 보호 레이아웃의 `SessionRefresher` (브라우저 클라이언트) |
+
+세션 갱신이 브라우저로 간 이유는 Server Component가 쿠키를 쓸 수 없기 때문이다.
+서버에서 토큰을 새로 받아도 저장할 자리가 없으므로, 쿠키에 세션을 저장하는
+`createBrowserClient`가 자동 갱신과 저장을 함께 맡는다.
 
 ### 3.3 RLS
 
@@ -157,11 +173,10 @@ Storage는 이미지 슬라이드의 그림 파일 하나에만 쓴다.
 
 - Y&ARCHER 로고는 저장소의 정적 자산으로 배포한다. 사용자가 올리지 않는다.
 - 표지는 흰색 기반의 tint 값만 DB에 저장한다. 배경 이미지가 없다.
-- PDF는 생성 즉시 다운로드하고 영구 저장하지 않는다.
 - 슬라이드 이미지는 `slide-images` 버킷에 프레젠테이션별 폴더로 저장한다.
   DB에는 객체 경로만 남기고 공개 주소는 매퍼가 만든다.
 
-`slide-images`는 공개 읽기 버킷이다. 공유 화면과 서버 PDF가 로그인 없이 이미지를 읽어야 하기 때문이다.
+`slide-images`는 공개 읽기 버킷이다. 공유 화면이 로그인 없이 이미지를 읽어야 하기 때문이다.
 대신 쓰기와 삭제는 `storage.objects` 정책으로 프레젠테이션 소유자에게만 허용하고,
 파일명은 추측할 수 없는 무작위 값을 쓴다. 정책 확인은 `pnpm db:verify-rls`가 함께 수행한다.
 
@@ -197,36 +212,7 @@ Storage는 이미지 슬라이드의 그림 파일 하나에만 쓴다.
 
 예를 들어 `presentations` 행의 `brand_color`, `cover_tint`, `footer_text`, `show_page_number`는 도메인 타입에서 `theme` 객체로 묶고, `slides` 행의 `content_url`, `reload_on_enter`, `viewport_*`는 `content` 객체로 묶는다.
 
-## 4. PDF 생성 전략
-
-PDF는 웹 프레젠테이션의 인터랙션을 유지할 수 없으므로 정적인 결과물로 생성한다.
-
-권장 흐름:
-
-1. 서버가 PDF 전용 프레젠테이션 URL을 연다.
-2. Playwright가 각 슬라이드와 iframe 웹페이지의 로딩 완료를 기다린다.
-3. 각 슬라이드를 16:9 정적 화면으로 캡처한다.
-4. 표지와 본문 캡처를 순서대로 PDF 페이지에 배치한다.
-5. 생성된 PDF를 사용자에게 바로 내려준다.
-6. 서버의 임시 결과물은 요청 종료 후 보관하지 않는다.
-
-iframe 삽입이 가능한 웹페이지만 사용한다는 제품 전제를 따른다. PDF 생성 시 웹페이지가 로딩되지 않으면 내보내기를 실패 처리하고 원인을 사용자에게 알린다.
-
-PDF 생성은 브라우저 인쇄 기능만으로 시작할 수도 있지만, iframe과 폰트 로딩 결과를 일관되게 만들기 위해 서버 측 Playwright 방식을 우선한다.
-
-### 4.1 구현 메모
-
-- 실행 의존성은 `playwright-core`다. 서버가 브라우저를 직접 띄우므로 배포 환경에 Chromium이 있어야 한다. 새 환경에서는 `pnpm exec playwright install chromium`을 한 번 실행한다.
-- `GET /presentations/[presentationId]/pdf/download`가 로그인과 소유자를 확인한 뒤 생성기를 호출한다.
-- 생성기는 요청자의 세션 쿠키를 그대로 옮겨 담아 `/presentations/[presentationId]/pdf`를 연다. PDF 화면도 같은 소유자 확인을 다시 한다.
-- 인쇄 시점은 PDF 화면이 `data-pdf-ready="true"`를 표시할 때다. 이 신호는 iframe 로딩과 `document.fonts.ready`가 끝난 뒤에 켜진다.
-- 웹페이지를 제한 시간(20초) 안에 불러오지 못하면 화면이 `data-pdf-frames="timeout"`을 표시하고, 생성기는 반쯤 빈 PDF를 만드는 대신 실패로 알린다.
-- 페이지 크기는 슬라이드 좌표계와 같은 1920×1080 px이며, 슬라이드 한 장이 PDF 한 페이지가 된다.
-- 결과는 파일로 저장하지 않고 응답 본문으로만 보낸다. 브라우저에서도 저장 후 임시 URL을 곧바로 해제한다.
-- PDF에서는 웹페이지를 조작할 수 없으므로 그 영역 전체를 원본 주소 링크로 만든다. `SlideView`의 `linkToSource`가
-  이 동작을 켜며 PDF 화면에서만 사용한다. 편집과 발표에서는 같은 자리에 조작 잠금 덮개가 들어간다.
-
-## 5. 상태 관리
+## 4. 상태 관리
 
 MVP에서는 React의 기본 상태와 서버 데이터를 우선 사용한다.
 
@@ -237,7 +223,7 @@ MVP에서는 React의 기본 상태와 서버 데이터를 우선 사용한다.
 
 초기부터 Redux를 도입하지 않는다. 편집기 상태가 여러 컴포넌트에 걸쳐 복잡해질 때만 Zustand 도입을 검토한다.
 
-## 6. 라우트 구조
+## 5. 라우트 구조
 
 ```text
 /
@@ -245,8 +231,6 @@ MVP에서는 React의 기본 상태와 서버 데이터를 우선 사용한다.
 /presentations
 /presentations/[presentationId]/edit
 /presentations/[presentationId]/present
-/presentations/[presentationId]/pdf
-/presentations/[presentationId]/pdf/download
 /share/[shareId]
 ```
 
@@ -255,13 +239,11 @@ MVP에서는 React의 기본 상태와 서버 데이터를 우선 사용한다.
 - `/presentations`: 사용자의 프레젠테이션 목록. 새 프레젠테이션 만들기는 별도 URL 없이 이 화면의 모달로 처리한다
 - `/edit`: 슬라이드 만들기, 목록, 수정, 삭제, 순서 변경
 - `/present`: 로그인 사용자의 전체화면 발표
-- `/pdf`: 서버 브라우저가 여는 PDF 전용 화면. 사람이 직접 열 일은 없다
-- `/pdf/download`: PDF를 만들어 내려주는 라우트 핸들러
 - `/share`: 읽기 전용 공유 발표. 공개 식별자 `presentations.share_id`로 찾는다
 - `/design-preview`: 디자인 토큰과 공통 UI를 데이터 없이 확인하는 내부 화면. 개발자용이라 프로덕션 빌드에서는
   `notFound()`로 404를 돌려준다. 화면을 지우지 않는 이유는 접근성 검사를 돌릴 곳이 필요해서다
 
-## 7. 권장 소스 구조
+## 6. 권장 소스 구조
 
 ```text
 src/
@@ -270,11 +252,11 @@ src/
 │  ├─ presentations/
 │  └─ share/
 ├─ features/
+│  ├─ auth/
 │  ├─ presentations/
 │  ├─ slide-renderer/
 │  ├─ slide-editor/
-│  ├─ slide-player/
-│  └─ pdf-export/
+│  └─ slide-player/
 ├─ components/
 │  ├─ ui/
 │  └─ layout/
@@ -291,13 +273,13 @@ supabase/
 
 기능 코드는 기술 종류가 아니라 제품 기능 단위로 묶는다. 예를 들어 슬라이드 목록과 관련된 컴포넌트, 훅, 액션은 `features/slide-editor` 아래에서 함께 관리한다.
 
-`features/slide-renderer`는 편집 미리보기, 목록 썸네일, 발표 화면, PDF가 함께 쓰는 시각 렌더러만 담는다. 이 폴더는 데이터 조회나 저장을 하지 않고, 슬라이드와 테마를 받아 그리기만 한다.
+`features/slide-renderer`는 편집 미리보기, 목록 썸네일, 발표 화면이 함께 쓰는 시각 렌더러만 담는다. 이 폴더는 데이터 조회나 저장을 하지 않고, 슬라이드와 테마를 받아 그리기만 한다.
 
-## 8. 500줄 제한 규칙
+## 7. 500줄 제한 규칙
 
 사용자가 말한 “페이지당 500줄”은 실제 개발 규칙에서 **소스 파일당 최대 500줄**로 정의한다. URL 페이지 하나는 여러 컴포넌트 파일로 나눌 수 있다.
 
-### 8.1 필수 규칙
+### 7.1 필수 규칙
 
 - 직접 작성한 `.ts`, `.tsx`, `.css` 파일은 500줄을 넘지 않는다.
 - 450줄에 도달하면 분리 작업을 시작한다.
@@ -307,7 +289,7 @@ supabase/
 - 타입, 상수, 검증 스키마, 데이터 접근 로직을 UI 파일에서 분리한다.
 - 자동 생성 파일과 Supabase DB 타입 파일은 500줄 검사에서 제외한다.
 
-### 8.2 파일이 커질 때 분리 기준
+### 7.2 파일이 커질 때 분리 기준
 
 “새 페이지”를 무조건 만드는 대신 역할에 맞는 새 파일로 나눈다.
 
@@ -324,7 +306,7 @@ supabase/
 
 새 URL이 필요한 별도 사용자 화면일 때만 Next.js의 새 `page.tsx`를 만든다.
 
-### 8.3 자동 검사
+### 7.3 자동 검사
 
 CI와 로컬 검사 명령에 파일 길이 검사를 추가한다. 500줄 초과 시 빌드 또는 PR 검사를 실패하게 하되, 다음 파일은 예외로 둔다.
 
@@ -333,7 +315,7 @@ CI와 로컬 검사 명령에 파일 길이 검사를 추가한다. 500줄 초�
 - 마이그레이션 SQL
 - 외부에서 생성된 코드
 
-## 9. 핵심 구현 경계
+## 8. 핵심 구현 경계
 
 ### 공통 렌더러
 
@@ -343,7 +325,7 @@ CI와 로컬 검사 명령에 파일 길이 검사를 추가한다. 500줄 초�
 - `SlideView`: `SlideStage`와 `SlideRenderer`를 묶은 기본 표시 단위
 - `WebFrame`: 기준 뷰포트로 그린 뒤 축소하는 iframe 영역. iframe은 하이드레이션이 끝난 뒤에 만든다.
   서버 HTML에 들어 있으면 하이드레이션 전에 로딩이 끝나 `load` 이벤트를 놓치고, 다 불러온 웹페이지 위에
-  로딩 문구가 남는다. 편집, 발표, PDF가 모두 `useMounted`로 같은 규칙을 따른다
+  로딩 문구가 남는다. 편집, 발표, 공유 화면이 모두 `useMounted`로 같은 규칙을 따른다
 
 ### 편집기
 
@@ -370,13 +352,13 @@ CI와 로컬 검사 명령에 파일 길이 검사를 추가한다. 500줄 초�
 iframe으로 들어가 훅에 닿지 않지만, 마우스를 화면 위로 빼면 이벤트가 다시 들어와 리모컨이 내려온다.
 
 전체화면일 때만 `--player-padding`과 16:9 잠금을 함께 풀어 화면을 가로세로 100%로 채운다.
-편집 미리보기, 공유 화면과 PDF는 16:9를 그대로 지킨다.
+편집 미리보기와 공유 화면은 16:9를 그대로 지킨다.
 
 발표 화면은 슬라이드를 모두 DOM에 두고 현재 것만 보여 준다. 이동할 때마다 iframe을 다시 만들면 시연 중이던 웹페이지 상태가 사라지기 때문이다. 웹페이지는 현재 슬라이드 기준 앞뒤 한 장까지만 실제로 띄운다.
 
-표지와 본문의 시각 렌더러는 편집 미리보기, 발표 모드, PDF 화면에서 동일한 컴포넌트를 재사용한다. 화면마다 템플릿을 별도로 구현하지 않는다.
+표지와 본문의 시각 렌더러는 편집 미리보기, 발표 모드, 공유 화면에서 동일한 컴포넌트를 재사용한다. 화면마다 템플릿을 별도로 구현하지 않는다.
 
-## 10. MVP에서 도입하지 않는 기술
+## 9. MVP에서 도입하지 않는 기술
 
 - 별도 Express 또는 NestJS 백엔드
 - Redux
@@ -387,11 +369,11 @@ iframe으로 들어가 훅에 닿지 않지만, 마우스를 화면 위로 빼�
 - 캔버스 편집 엔진
 - CSS-in-JS 런타임 라이브러리
 
-## 11. 추후 확정 항목
+## 10. 추후 확정 항목
 
 - Next.js 및 주요 패키지의 정확한 버전 고정
 - ~~이메일 로그인과 매직 링크 중 인증 UX 선택~~ → 이메일 + 비밀번호로 확정
-- PDF 생성 환경과 배포 대상
+- ~~배포 대상 환경 확정~~ → Cloudflare Workers로 확정
 - 자동 저장 충돌 처리 정책
 - 공개 공유 링크의 만료와 비밀번호 지원 여부
 - 데이터 삭제 및 복구 정책

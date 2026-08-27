@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Menu } from "@/components/ui";
-import { ExportPdfButton } from "@/features/pdf-export/components/export-pdf-button";
 import { PresentationSettingsDialog } from "@/features/presentations/components/presentation-settings-dialog";
 import { RenamePresentationDialog } from "@/features/presentations/components/rename-presentation-dialog";
 import { ShareLinkDialog } from "@/features/presentations/components/share-link-dialog";
@@ -20,7 +19,7 @@ export type EditorHeaderProps = {
   saveStatus: SaveStatus;
   saveMessage?: string;
   onRetrySave: () => void;
-  /** 발표하거나 내보낼 수 있는 슬라이드가 있는지 여부. */
+  /** 발표할 수 있는 슬라이드가 있는지 여부. */
   canPresent: boolean;
 };
 
@@ -67,8 +66,6 @@ export function EditorHeader({
             { id: "share", label: "공유 링크", onSelect: () => setDialog("share") },
           ]}
         />
-
-        <ExportPdfButton presentationId={presentation.id} disabled={!canPresent} />
 
         <Button
           size="sm"

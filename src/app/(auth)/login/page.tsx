@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Logo } from "@/components/ui";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { ROUTES, safeRedirectPath } from "@/lib/routes";
+import { getCurrentUser } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "로그인 | Web Slide",
@@ -14,6 +16,9 @@ export default async function LoginPage(props: PageProps<"/login">) {
     Array.isArray(redirectTo) ? redirectTo[0] : redirectTo,
     ROUTES.presentations,
   );
+
+  // 이미 로그인했다면 로그인 화면을 보여 줄 이유가 없다.
+  if (await getCurrentUser()) redirect(target);
 
   return (
     <main id="main-content" className="flex flex-1 items-center justify-center p-6">

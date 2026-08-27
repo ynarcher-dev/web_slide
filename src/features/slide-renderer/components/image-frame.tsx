@@ -27,7 +27,7 @@ export function ImageFrame({ image, slideTitle }: ImageFrameProps) {
 
   return (
     <div className={styles.frame}>
-      {/* Storage 공개 주소를 그대로 쓴다. next/image 최적화는 PDF 브라우저에서 이점이 없다. */}
+      {/* Storage 공개 주소를 그대로 쓴다. 슬라이드는 원본 비율 그대로 그려야 한다. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={image.url}

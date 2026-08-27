@@ -15,10 +15,7 @@ export function EditorShellPreview() {
             <span className="text-sm font-semibold text-foreground">서비스 소개</span>
             <span className="text-xs text-foreground-muted">저장됨</span>
             <div className="ml-auto flex gap-2">
-              <Button size="sm" variant="secondary">
-                발표 시작
-              </Button>
-              <Button size="sm">PDF 내보내기</Button>
+              <Button size="sm">발표 시작</Button>
             </div>
           </>
         }

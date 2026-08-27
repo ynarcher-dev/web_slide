@@ -5,21 +5,17 @@ export const ROUTES = {
   presentations: "/presentations",
   presentationEdit: (presentationId: string) => `/presentations/${presentationId}/edit`,
   presentationPresent: (presentationId: string) => `/presentations/${presentationId}/present`,
-  /** PDF 생성용 화면. 사람이 직접 열지는 않고 서버 브라우저가 연다. */
-  presentationPdf: (presentationId: string) => `/presentations/${presentationId}/pdf`,
-  /** PDF 파일을 내려주는 엔드포인트. */
-  presentationPdfDownload: (presentationId: string) =>
-    `/presentations/${presentationId}/pdf/download`,
   share: (shareId: string) => `/share/${shareId}`,
 } as const;
 
-/** 로그인해야 접근할 수 있는 경로 접두사. */
-export const PROTECTED_PATH_PREFIXES = ["/presentations"] as const;
-
-export function isProtectedPath(pathname: string): boolean {
-  return PROTECTED_PATH_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
+/**
+ * 로그인 화면 주소. `returnTo`를 주면 로그인 후 그 화면으로 되돌아온다.
+ *
+ * 미들웨어를 두지 않으므로 이 주소는 보호 화면이 직접 만든다.
+ */
+export function loginUrlFor(returnTo?: string): string {
+  if (!returnTo) return ROUTES.login;
+  return `${ROUTES.login}?redirectTo=${encodeURIComponent(returnTo)}`;
 }
 
 /**

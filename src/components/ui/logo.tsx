@@ -17,7 +17,7 @@ type LogoProps = {
 /**
  * Y&ARCHER 고정 로고. 사용자가 업로드하거나 교체하지 않는다.
  *
- * 벡터라 재압축할 이유가 없고, 서버 PDF 생성에서도 원본 그대로 필요하므로
+ * 벡터라 재압축할 이유가 없고, 모든 화면에서 원본 그대로 필요하므로
  * 이미지 최적화를 거치지 않고 정적 자산을 그대로 사용한다.
  */
 export function Logo({ height = 24, decorative = false, className }: LogoProps) {

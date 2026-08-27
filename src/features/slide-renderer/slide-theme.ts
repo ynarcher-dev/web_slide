@@ -6,7 +6,7 @@ import { MAX_COVER_TINT_ALPHA } from "./constants";
  * 프레젠테이션 공통 테마를 슬라이드 CSS 변수로 바꾼다.
  *
  * 표지 tint는 `color-mix` 대신 값을 직접 계산한다.
- * 편집 화면, 발표 화면, 서버 PDF에서 같은 색이 나와야 하기 때문이다.
+ * 편집 화면, 발표 화면, 공유 화면에서 같은 색이 나와야 하기 때문이다.
  */
 
 type Rgb = { r: number; g: number; b: number };

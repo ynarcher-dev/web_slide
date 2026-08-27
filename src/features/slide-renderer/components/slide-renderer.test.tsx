@@ -196,30 +196,6 @@ describe("본문 템플릿", () => {
     ).toHaveAttribute("data-interactive", "true");
   });
 
-  it("linkToSource면 웹페이지 영역을 원본 주소 링크로 만든다", () => {
-    render(
-      <SlideRenderer
-        slide={slide({
-          content: {
-            type: "website",
-            url: "https://demo.example.com/path",
-            reloadOnEnter: false,
-            viewport: { width: 1920, height: 1080 },
-          },
-        })}
-        theme={THEME}
-        pageNumber={2}
-        linkToSource
-      />,
-    );
-
-    // PDF는 조작할 수 없으므로 원본으로 이동할 방법을 남긴다.
-    const link = screen.getByTestId("web-frame-source-link");
-    expect(link).toHaveAttribute("href", "https://demo.example.com/path");
-    expect(link).toHaveAccessibleName("demo.example.com 원본 페이지 열기");
-    expect(screen.queryByTestId("web-frame-lock")).not.toBeInTheDocument();
-  });
-
   it("정적 모드에서는 iframe 대신 주소만 보여 준다", () => {
     render(
       <SlideRenderer

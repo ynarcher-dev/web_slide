@@ -5,7 +5,7 @@ import type { Database } from "@/types/database.types";
 
 /**
  * Server Component, Server Action, Route Handler에서 사용하는 Supabase 클라이언트.
- * 세션은 쿠키에 저장되며 갱신은 `src/proxy.ts`가 함께 처리한다.
+ * 세션은 쿠키에 저장되며, 갱신은 보호 레이아웃의 `SessionRefresher`가 브라우저에서 처리한다.
  */
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
@@ -25,7 +25,7 @@ export async function createSupabaseServerClient() {
             }
           } catch {
             // Server Component에서는 쿠키를 쓸 수 없다.
-            // 세션 갱신은 proxy가 담당하므로 여기서는 무시해도 안전하다.
+            // 세션 갱신은 브라우저의 `SessionRefresher`가 담당하므로 여기서는 무시해도 안전하다.
           }
         },
       },

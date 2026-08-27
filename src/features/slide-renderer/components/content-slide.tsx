@@ -13,8 +13,6 @@ export type ContentSlideProps = {
   interactive?: boolean;
   reloadToken?: string | number;
   mode?: "live" | "static";
-  /** 웹페이지 영역을 원본 주소 링크로 만든다. PDF 전용이다. */
-  linkToSource?: boolean;
   /** 잠긴 웹페이지 영역을 눌렀을 때 조작을 켜는 동작. */
   onActivateWebFrame?: () => void;
 };
@@ -32,7 +30,6 @@ export function ContentSlide({
   interactive,
   reloadToken,
   mode,
-  linkToSource,
   onActivateWebFrame,
 }: ContentSlideProps) {
   return (
@@ -64,7 +61,6 @@ export function ContentSlide({
             interactive={interactive}
             reloadToken={reloadToken}
             mode={mode}
-            linkToSource={linkToSource}
             onActivate={onActivateWebFrame}
           />
         )}

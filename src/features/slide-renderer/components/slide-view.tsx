@@ -14,8 +14,6 @@ export type SlideViewProps = {
   interactive?: boolean;
   reloadToken?: string | number;
   mode?: SlideRenderMode;
-  /** 웹페이지 영역을 원본 주소 링크로 만든다. PDF 전용이다. */
-  linkToSource?: boolean;
   /** 잠긴 웹페이지 영역을 눌렀을 때 조작을 켜는 동작. */
   onActivateWebFrame?: () => void;
   /** 16:9 대신 바깥 상자를 가로세로 모두 채운다. 전체화면 발표에서 사용한다. */
@@ -35,7 +33,6 @@ export function SlideView({
   interactive,
   reloadToken,
   mode,
-  linkToSource,
   onActivateWebFrame,
   fill,
   className,
@@ -56,7 +53,6 @@ export function SlideView({
         interactive={interactive}
         reloadToken={reloadToken}
         mode={mode}
-        linkToSource={linkToSource}
         onActivateWebFrame={onActivateWebFrame}
       />
     </SlideStage>

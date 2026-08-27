@@ -7,6 +7,8 @@ const TARGET_EXTENSIONS = [".ts", ".tsx", ".css"];
 const EXCLUDED_DIRS = new Set([
   "node_modules",
   ".next",
+  ".open-next",
+  ".wrangler",
   ".git",
   "coverage",
   "playwright-report",

@@ -23,11 +23,6 @@ export type WebFrameProps = {
   reloadToken?: string | number;
   /** `static`이면 iframe을 만들지 않는다. 썸네일처럼 여러 장을 한 번에 그릴 때 사용한다. */
   mode?: "live" | "static";
-  /**
-   * 웹페이지 영역 전체를 원본 주소 링크로 만든다. PDF 전용이다.
-   * PDF에서는 웹페이지를 조작할 수 없으므로 원본으로 이동할 방법을 남긴다.
-   */
-  linkToSource?: boolean;
 };
 
 /** 정적 표시에 쓸 짧은 주소. 파싱할 수 없으면 원본을 그대로 보여준다. */
@@ -52,13 +47,11 @@ function LiveFrame({
   content,
   slideTitle,
   interactive,
-  linkToSource,
   onActivate,
 }: {
   content: WebPageContent;
   slideTitle?: string;
   interactive: boolean;
-  linkToSource: boolean;
   onActivate?: () => void;
 }) {
   const { ref, width } = useElementWidth<HTMLDivElement>();
@@ -83,18 +76,7 @@ function LiveFrame({
         />
       ) : null}
 
-      {interactive ? null : linkToSource ? (
-        // PDF는 조작할 수 없으므로 이 영역을 원본 주소 링크로 만든다.
-        <a
-          href={content.url}
-          target="_blank"
-          rel="noreferrer"
-          className={styles.frameOverlay}
-          data-testid="web-frame-source-link"
-        >
-          <span className="sr-only">{shortLabel(content.url)} 원본 페이지 열기</span>
-        </a>
-      ) : onActivate ? (
+      {interactive ? null : onActivate ? (
         // 덮개를 눌러 조작을 켠다. 클릭이 바깥으로 퍼지면 켜자마자 다시 꺼지므로 여기서 멈춘다.
         // 슬라이드는 role="img"이라 안쪽에 포커스 가능한 요소를 두지 않는다. 키보드는 바깥 버튼을 쓴다.
         <div
@@ -132,7 +114,6 @@ export function WebFrame({
   interactive = false,
   reloadToken,
   mode = "live",
-  linkToSource = false,
   onActivate,
 }: WebFrameProps) {
   if (!content) {
@@ -158,7 +139,6 @@ export function WebFrame({
       content={content}
       slideTitle={slideTitle}
       interactive={interactive}
-      linkToSource={linkToSource}
       onActivate={onActivate}
     />
   );

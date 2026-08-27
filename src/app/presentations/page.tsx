@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { Logo } from "@/components/ui";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
+import { requireUser } from "@/features/auth/require-user";
 import { PresentationList } from "@/features/presentations/components/presentation-list";
 import { listPresentations } from "@/features/presentations/data/presentation-repository";
 import { ROUTES } from "@/lib/routes";
-import { createSupabaseServerClient, getCurrentUser } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "내 프레젠테이션 | Web Slide",
@@ -13,9 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PresentationsPage() {
-  // proxy가 먼저 막지만, 서버에서도 다시 확인해 두 겹으로 보호한다.
-  const user = await getCurrentUser();
-  if (!user) redirect(ROUTES.login);
+  const user = await requireUser(ROUTES.presentations);
 
   const supabase = await createSupabaseServerClient();
   const presentations = await listPresentations(supabase, user.id);

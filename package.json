@@ -19,14 +19,18 @@
     "db:types": "node --env-file-if-exists=.env.local scripts/db-types.mjs",
     "db:verify-rls": "node --env-file-if-exists=.env.local scripts/verify-rls.mjs",
     "db:seed": "node --env-file-if-exists=.env.local scripts/db-seed.mjs",
-    "e2e:browsers": "playwright test --project=firefox --project=webkit --project=msedge"
+    "e2e:browsers": "playwright test --project=firefox --project=webkit --project=msedge",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:preview": "opennextjs-cloudflare preview",
+    "cf:deploy": "opennextjs-cloudflare deploy",
+    "cf:upload": "opennextjs-cloudflare upload"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.2",
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.112.4",
     "motion": "^13.1.1",
-    "next": "16.3.2",
-    "playwright-core": "1.62.1",
+    "next": "16.3.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.4.3"
@@ -44,7 +48,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.1.0",
     "eslint": "^9",
-    "eslint-config-next": "16.3.2",
+    "eslint-config-next": "16.3.3",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^30.0.1",
     "pg": "^8.23.0",
@@ -53,7 +57,8 @@
     "supabase": "^2.115.0",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.126.0"
   },
   "packageManager": "pnpm@11.9.0"
 }
