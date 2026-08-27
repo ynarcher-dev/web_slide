@@ -345,6 +345,9 @@
       필요 없다. Windows 개발자 모드만 전제 조건이다.
 - [x] 공유 링크를 브라우저의 실제 origin으로 만든다. 배포 도메인을 빌드 시점에 몰라도 되고,
       도메인이 바뀌어도 다시 빌드할 필요가 없다.
+- [x] 대시보드에 폴더를 끌어다 놓는 경로를 만든다. `pnpm cf:dist`가 wrangler의 번들링 결과를
+      `_worker.js`로 뽑아 정적 자산과 함께 `dist/`에 놓는다. Cloudflare 공식 경로가 아니며
+      업로드 후 `nodejs_compat` 플래그를 넣어야 한다.
 - [ ] 실제로 한 번 배포하고 결과를 확인한다. `pnpm exec wrangler login` 후
       `pnpm cf:build && pnpm cf:deploy`. 사람이 브라우저 인증을 해야 해서 대신할 수 없다.
 - [x] DB 마이그레이션 적용 절차를 검증한다. (`pnpm db:push` 재실행 시 `up to date`)
@@ -390,6 +393,9 @@
       충분한지, 상단에 얇은 손잡이 표시가 필요한지 실제 사용 후 결정한다.
 - [ ] 전체화면 발표는 화면 비율이 16:9가 아니면 슬라이드를 늘려서 채운다. 16:10이나 21:9 화면에서 글자 왜곡이
       실제로 거슬리는지 확인하고, 필요하면 채우기와 여백 유지 중 고를 수 있게 할지 결정한다.
+- [ ] `pnpm cf:dist`로 만든 `dist/`가 대시보드 업로드에서 실제로 동작하는지 확인되지 않았다.
+      Cloudflare 문서에 이 흐름의 `_worker.js` 지원 여부가 없다. 한 번 시도해 보고
+      안 되면 이 경로와 스크립트를 지운다.
 - [ ] `NEXT_PUBLIC_SITE_URL`은 이제 서버 렌더 결과의 대비값일 뿐이다. 쓰는 곳이 더 늘지 않는다면
       아예 없앨지 정한다.
 - [ ] 자바스크립트를 끈 브라우저에서는 세션 쿠키가 갱신되지 않는다. 미들웨어를 쓸 수 없어 생긴 제약이며,
@@ -402,7 +408,8 @@
 
 - 마지막 업데이트: 2026-08-27
 - 현재 단계: 단계 11 진행 중 — Cloudflare 대시보드 설정과 사람이 직접 훑는 MVP 수동 시나리오가 남음. 단계 10(PDF)은 범위에서 제외
-- 마지막 완료 작업: 공유 링크를 브라우저의 실제 origin으로 만들도록 변경. 배포 도메인을 빌드 시점에 몰라도 되고 도메인이 바뀌어도 다시 빌드할 필요가 없다. `NEXT_PUBLIC_SITE_URL`은 서버 렌더 결과의 대비값으로 내려갔다
+- 마지막 완료 작업: 대시보드 업로드용 `pnpm cf:dist` 추가. wrangler가 배포 시점에 하던 번들링을 미리 돌려 `_worker.js` 한 파일로 뽑고 정적 자산과 함께 `dist/`에 놓는다. 검증되지 않은 경로이며 `pnpm cf:deploy`가 여전히 확실한 방법이다
+- 그 전 완료 작업: 공유 링크를 브라우저의 실제 origin으로 만들도록 변경. 배포 도메인을 빌드 시점에 몰라도 되고 도메인이 바뀌어도 다시 빌드할 필요가 없다. `NEXT_PUBLIC_SITE_URL`은 서버 렌더 결과의 대비값으로 내려갔다
 - 그 전 완료 작업: Cloudflare Workers 배포 설정. `@opennextjs/cloudflare` 어댑터와 `wrangler.jsonc`를 추가하고, Node 미들웨어를 쓸 수 없어 `src/proxy.ts`를 없애고 보호 경계를 페이지별 `requireUser`로, 세션 갱신을 브라우저 `SessionRefresher`로 옮겼다. Next는 어댑터 요구에 맞춰 16.3.3으로 올렸다
 - 그 전 완료 작업: PDF 내보내기 기능 전체 삭제. Cloudflare Workers 배포가 서버 Chromium을 띄울 수 없어 범위에서 뺐다. 코드, 라우트, 테스트, `playwright-core` 의존성과 관련 문서를 모두 정리했다
 - 그 전 완료 작업: 남은 미완료 항목 정리와 문서 동기화. `pnpm db:types`를 Docker로 실제 실행해 손으로 쓴 DB 타입을 생성 결과로 교체하고, 슬라이드 유형 4종과 발표 리모컨 변경을 제품 기획서·개발 스택 문서에 반영했다. 기준 대비 달라진 점은 [보완 사항 문서](docs/product/scope-updates.md)에, 사람이 훑을 절차는 [수동 확인 시나리오](docs/technical/mvp-manual-scenario.md)에 남겼다
@@ -452,6 +459,7 @@
 | 2026-08-27 | 기준 대비 달라진 점만 모은 [보완 사항 문서](docs/product/scope-updates.md)를 추가. 기획서와 스택 문서는 항상 현재 제품을 설명하므로 무엇이 왜 바뀌었는지가 남지 않았음                                                                                                                                                                                                                                                |
 | 2026-08-27 | 터미널 배포 경로를 기본으로 문서화. 로컬 빌드가 `.env.local`을 쓰므로 대시보드 빌드 변수가 필요 없다                                                                                                                                                                                                                                                                                                                  |
 | 2026-08-27 | 공유 링크를 `NEXT_PUBLIC_SITE_URL` 대신 **브라우저의 실제 origin**으로 만들도록 변경. 배포 도메인을 모르는 채로 배포해도 링크가 맞고, 도메인이 바뀌어도 다시 빌드하지 않아도 된다. 다이얼로그는 클라이언트 컴포넌트라 마운트 이후 `window.location.origin`을 쓰고, 환경 변수는 하이드레이션 전 서버 렌더 결과의 대비값으로만 남는다                                                                                   |
+| 2026-08-27 | 대시보드에 폴더를 끌어다 놓는 배포 경로를 `pnpm cf:dist`로 추가. `.open-next/worker.js`는 4KB짜리 진입점일 뿐이고 실제 코드는 51MB 트리에 흩어져 있어 그대로 올리면 서버 코드가 돌지 않는다. `wrangler deploy --dry-run --outdir`로 번들링 결과만 뽑아 `_worker.js`로 놓는다. Cloudflare가 안내하는 경로가 아니고 `nodejs_compat` 플래그를 따로 넣어야 해서, 확실한 방법은 여전히 `pnpm cf:deploy`다                  |
 | 2026-08-27 | 배포 대상을 **Cloudflare Workers**로 확정하고 `@opennextjs/cloudflare` 어댑터, `wrangler.jsonc`, `open-next.config.ts`, `cf:*` 스크립트를 추가. 증분 캐시(R2/KV)와 이미지 바인딩은 두지 않았다. 데이터 화면이 모두 동적 라우트이고 로고가 `unoptimized`라 쓸 일이 없다                                                                                                                                                |
 | 2026-08-27 | **`src/proxy.ts`와 `src/lib/supabase/proxy-session.ts`를 삭제하고 인증 경계를 페이지로 옮김.** Next.js 16의 `proxy.ts`는 Node 런타임 고정이라(`runtime` 옵션은 오류) `@opennextjs/cloudflare`가 빌드 단계에서 거부한다. 보호 화면은 `requireUser`가 막고, 로그인 화면은 `getCurrentUser`로 우회시키며, 세션 쿠키 갱신은 보호 레이아웃의 `SessionRefresher`가 브라우저에서 맡는다. 기존 E2E 인증 6건이 그대로 통과한다 |
 | 2026-08-27 | Next.js를 16.3.2에서 16.3.3으로 올림. `@opennextjs/cloudflare` 최신 버전의 peer 조건이 `>=16.3.3`이라 어댑터를 따라갈 수 있게 맞췄다. 어댑터 자체는 pnpm의 최소 배포 경과 정책을 지키는 1.20.2를 쓴다                                                                                                                                                                                                                 |

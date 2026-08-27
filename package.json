@@ -23,7 +23,8 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare deploy",
-    "cf:upload": "opennextjs-cloudflare upload"
+    "cf:upload": "opennextjs-cloudflare upload",
+    "cf:dist": "node scripts/cf-dist.mjs"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.2",

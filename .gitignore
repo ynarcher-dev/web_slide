@@ -20,6 +20,7 @@
 # cloudflare workers
 /.open-next/
 /.wrangler/
+/dist/
 
 # production
 /build

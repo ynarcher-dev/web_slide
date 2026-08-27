@@ -9,6 +9,7 @@ const EXCLUDED_DIRS = new Set([
   ".next",
   ".open-next",
   ".wrangler",
+  "dist",
   ".git",
   "coverage",
   "playwright-report",
