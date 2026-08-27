@@ -5,6 +5,7 @@ import { writeFileSync } from "node:fs";
 const require = createRequire(import.meta.url);
 // pnpm 워크스페이스에서도 확실히 잡히도록 CLI 진입점을 직접 해석한다.
 const SUPABASE_CLI = require.resolve("supabase/dist/supabase.js");
+const PRETTIER_CLI = require.resolve("prettier/bin/prettier.cjs");
 
 const OUTPUT = "src/types/database.types.ts";
 
@@ -62,4 +63,9 @@ const header = [
 ].join("\n");
 
 writeFileSync(OUTPUT, header + types, "utf-8");
+
+// CLI 출력은 저장소 포맷 규칙과 다르다. 그대로 두면 `pnpm format:check`가 실패하므로
+// 생성 직후 한 번 정리해서 재생성 결과가 항상 같은 모양이 되게 한다.
+execFileSync(process.execPath, [PRETTIER_CLI, "--write", OUTPUT], { stdio: "ignore" });
+
 console.log(`${OUTPUT} 생성 완료`);

@@ -1,133 +1,127 @@
-/**
- * Supabase public 스키마의 DB 타입.
- *
- * 이 파일은 `supabase/migrations`의 스키마와 1:1로 대응한다.
- * Docker 또는 `SUPABASE_ACCESS_TOKEN`이 준비되면 `pnpm db:types`로 다시 생성해 덮어쓴다.
- * 애플리케이션 코드는 이 타입을 직접 쓰지 않고 `src/types/domain.ts`의 도메인 타입을 사용한다.
- */
-
+// 이 파일은 `pnpm db:types`가 생성한다. 직접 수정하지 않는다.
+// 애플리케이션에서 쓰는 도메인 타입은 src/types/domain.ts에 둔다.
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   public: {
     Tables: {
-      profiles: {
+      presentations: {
         Row: {
-          id: string;
-          display_name: string;
+          brand_color: string;
+          cover_tint: number;
           created_at: string;
+          footer_text: string;
+          id: string;
+          is_public: boolean;
+          owner_id: string;
+          share_id: string;
+          show_page_number: boolean;
+          title: string;
           updated_at: string;
         };
         Insert: {
-          id: string;
-          display_name?: string;
+          brand_color?: string;
+          cover_tint?: number;
           created_at?: string;
+          footer_text?: string;
+          id?: string;
+          is_public?: boolean;
+          owner_id: string;
+          share_id?: string;
+          show_page_number?: boolean;
+          title?: string;
           updated_at?: string;
         };
         Update: {
-          id?: string;
-          display_name?: string;
+          brand_color?: string;
+          cover_tint?: number;
           created_at?: string;
+          footer_text?: string;
+          id?: string;
+          is_public?: boolean;
+          owner_id?: string;
+          share_id?: string;
+          show_page_number?: boolean;
+          title?: string;
           updated_at?: string;
         };
         Relationships: [];
       };
-      presentations: {
+      profiles: {
         Row: {
-          id: string;
-          owner_id: string;
-          title: string;
-          brand_color: string;
-          cover_tint: number;
-          footer_text: string;
-          show_page_number: boolean;
-          is_public: boolean;
-          share_id: string;
           created_at: string;
+          display_name: string;
+          id: string;
           updated_at: string;
         };
         Insert: {
-          id?: string;
-          owner_id: string;
-          title?: string;
-          brand_color?: string;
-          cover_tint?: number;
-          footer_text?: string;
-          show_page_number?: boolean;
-          is_public?: boolean;
-          share_id?: string;
           created_at?: string;
+          display_name?: string;
+          id: string;
           updated_at?: string;
         };
         Update: {
-          id?: string;
-          owner_id?: string;
-          title?: string;
-          brand_color?: string;
-          cover_tint?: number;
-          footer_text?: string;
-          show_page_number?: boolean;
-          is_public?: boolean;
-          share_id?: string;
           created_at?: string;
+          display_name?: string;
+          id?: string;
           updated_at?: string;
         };
         Relationships: [];
       };
       slides: {
         Row: {
-          id: string;
-          presentation_id: string;
-          template: Database["public"]["Enums"]["slide_template"];
-          sort_order: number;
-          title: string;
-          subtitle: string;
           author: string;
-          page_name: string;
           content_url: string | null;
-          image_path: string | null;
-          html_content: string | null;
-          reload_on_enter: boolean;
-          viewport_width: number;
-          viewport_height: number;
           created_at: string;
+          html_content: string | null;
+          id: string;
+          image_path: string | null;
+          page_name: string;
+          presentation_id: string;
+          reload_on_enter: boolean;
+          sort_order: number;
+          subtitle: string;
+          template: Database["public"]["Enums"]["slide_template"];
+          title: string;
           updated_at: string;
+          viewport_height: number;
+          viewport_width: number;
         };
         Insert: {
-          id?: string;
-          presentation_id: string;
-          template: Database["public"]["Enums"]["slide_template"];
-          sort_order?: number;
-          title?: string;
-          subtitle?: string;
           author?: string;
-          page_name?: string;
           content_url?: string | null;
-          image_path?: string | null;
-          html_content?: string | null;
-          reload_on_enter?: boolean;
-          viewport_width?: number;
-          viewport_height?: number;
           created_at?: string;
+          html_content?: string | null;
+          id?: string;
+          image_path?: string | null;
+          page_name?: string;
+          presentation_id: string;
+          reload_on_enter?: boolean;
+          sort_order?: number;
+          subtitle?: string;
+          template: Database["public"]["Enums"]["slide_template"];
+          title?: string;
           updated_at?: string;
+          viewport_height?: number;
+          viewport_width?: number;
         };
         Update: {
-          id?: string;
-          presentation_id?: string;
-          template?: Database["public"]["Enums"]["slide_template"];
-          sort_order?: number;
-          title?: string;
-          subtitle?: string;
           author?: string;
-          page_name?: string;
           content_url?: string | null;
-          image_path?: string | null;
-          html_content?: string | null;
-          reload_on_enter?: boolean;
-          viewport_width?: number;
-          viewport_height?: number;
           created_at?: string;
+          html_content?: string | null;
+          id?: string;
+          image_path?: string | null;
+          page_name?: string;
+          presentation_id?: string;
+          reload_on_enter?: boolean;
+          sort_order?: number;
+          subtitle?: string;
+          template?: Database["public"]["Enums"]["slide_template"];
+          title?: string;
           updated_at?: string;
+          viewport_height?: number;
+          viewport_width?: number;
         };
         Relationships: [
           {
@@ -140,29 +134,140 @@ export type Database = {
         ];
       };
     };
-    Views: Record<never, never>;
+    Views: {
+      [_ in never]: never;
+    };
     Functions: {
+      owns_slide_image: { Args: { object_name: string }; Returns: boolean };
       reorder_slides: {
         Args: { p_presentation_id: string; p_slide_ids: string[] };
         Returns: undefined;
-      };
-      owns_slide_image: {
-        Args: { object_name: string };
-        Returns: boolean;
       };
     };
     Enums: {
       slide_template: "cover" | "content" | "image" | "html";
     };
-    CompositeTypes: Record<never, never>;
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
 };
 
-type PublicSchema = Database["public"];
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-export type Tables<T extends keyof PublicSchema["Tables"]> = PublicSchema["Tables"][T]["Row"];
-export type TablesInsert<T extends keyof PublicSchema["Tables"]> =
-  PublicSchema["Tables"][T]["Insert"];
-export type TablesUpdate<T extends keyof PublicSchema["Tables"]> =
-  PublicSchema["Tables"][T]["Update"];
-export type Enums<T extends keyof PublicSchema["Enums"]> = PublicSchema["Enums"][T];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    keyof DefaultSchema["CompositeTypes"] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never;
+
+export const Constants = {
+  public: {
+    Enums: {
+      slide_template: ["cover", "content", "image", "html"],
+    },
+  },
+} as const;

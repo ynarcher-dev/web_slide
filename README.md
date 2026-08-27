@@ -9,6 +9,7 @@
 - 읽기 전용 공유 링크와 서버 생성 PDF 내보내기를 지원한다.
 
 자세한 제품 범위는 [제품 기획서](docs/product/web-slide-product-plan.md), 기술 결정은 [개발 스택 문서](docs/technical/development-stack.md), 개발 진행 기준은 [AGENTS.md](AGENTS.md)에 있다.
+초기 기준에서 달라진 부분은 [보완 사항 문서](docs/product/scope-updates.md)에, 출시 전 사람이 훑는 확인 절차는 [수동 확인 시나리오](docs/technical/mvp-manual-scenario.md)에 있다.
 
 ## 요구 사항
 
