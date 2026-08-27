@@ -13,6 +13,9 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    // Cloudflare Workers 빌드 산출물.
+    ".open-next/**",
+    ".wrangler/**",
     "next-env.d.ts",
     "playwright-report/**",
     "test-results/**",

@@ -9,6 +9,7 @@ import { ROUTES } from "@/lib/routes";
  * 식별자 자체는 `presentations.share_id`의 기본값(`gen_random_uuid()`)이 만든다.
  */
 export function buildShareUrl(shareId: string, origin?: string): string {
+  // origin을 주지 않을 때만 환경 변수를 쓴다. 화면은 브라우저의 실제 주소를 넘긴다.
   // 배포 도메인 뒤에 슬래시가 붙어 있어도 `//share/...`가 되지 않게 정리한다.
   const base = (origin ?? env.NEXT_PUBLIC_SITE_URL).replace(/\/+$/, "");
   return `${base}${ROUTES.share(shareId)}`;

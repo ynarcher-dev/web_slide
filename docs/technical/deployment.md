@@ -42,8 +42,10 @@ Node 미들웨어를 빌드 단계에서 거부한다. 그래서 인증 차단�
 
 값의 의미와 전체 목록은 [README의 환경 변수](../../README.md#환경-변수)에 있다. 배포 시 주의점만 적는다.
 
-- `NEXT_PUBLIC_*` 세 개는 **빌드 시점에 번들에 박힌다.** 값을 바꾸면 다시 빌드해야 한다.
-- `NEXT_PUBLIC_SITE_URL`은 실제 접속 도메인이어야 한다. 공유 링크 주소의 기준이다.
+- `NEXT_PUBLIC_*`는 **빌드 시점에 번들에 박힌다.** 값을 바꾸면 다시 빌드해야 한다.
+- `NEXT_PUBLIC_SITE_URL`은 **몰라도 된다.** 공유 링크는 사용자가 보고 있는 브라우저의 origin으로
+  만들기 때문에, 이 값은 하이드레이션 전 서버 렌더 결과에만 쓰이는 대비값이다.
+  덕분에 배포 도메인을 정하기 전에도 배포할 수 있다.
 - `SUPABASE_DB_URL`과 `SUPABASE_ACCESS_TOKEN`은 로컬 스크립트 전용이다. **배포 환경에 넣지 않는다.**
 - `service_role` 키는 어디에도 넣지 않는다. 애플리케이션은 publishable 키와 RLS만으로 동작한다.
 
@@ -51,15 +53,15 @@ Node 미들웨어를 빌드 단계에서 거부한다. 그래서 인증 차단�
 
 `NEXT_PUBLIC_*`는 빌드 시점에 번들에 박히므로 **런타임 변수가 아니라 빌드 변수로 넣어야 한다.**
 
-Workers 대시보드 → 해당 Worker → 설정 → 빌드 → **빌드 변수**에 세 개를 등록한다.
+Workers 대시보드 → 해당 Worker → 설정 → 빌드 → **빌드 변수**에 등록한다.
 
-| 변수                                   | 예시                                    |
-| -------------------------------------- | --------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL`                 | `https://web-slide.example.workers.dev` |
-| `NEXT_PUBLIC_SUPABASE_URL`             | `https://<project-ref>.supabase.co`     |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...`                    |
+| 변수                                   | 필수   | 예시                                |
+| -------------------------------------- | ------ | ----------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | 예     | `https://<project-ref>.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 예     | `sb_publishable_...`                |
+| `NEXT_PUBLIC_SITE_URL`                 | 아니오 | 기본값이 있다. 위 설명 참고         |
 
-값이 비어 있으면 [`src/lib/env.ts`](../../src/lib/env.ts)의 zod 검증이 빌드 도중 실패한다.
+필수 두 개가 비어 있으면 [`src/lib/env.ts`](../../src/lib/env.ts)의 zod 검증이 빌드 도중 실패한다.
 `SUPABASE_DB_URL`과 `SUPABASE_ACCESS_TOKEN`은 로컬 스크립트 전용이므로 **넣지 않는다.**
 
 ## 3. DB 마이그레이션 적용 절차
@@ -154,20 +156,8 @@ pnpm exec wrangler login   # 브라우저가 열린다
 pnpm exec wrangler whoami  # 계정이 나오면 성공
 ```
 
-**3. 배포용 주소를 `.env.production.local`에 넣는다.**
-
-`NEXT_PUBLIC_*`는 빌드 시점에 번들에 박힌다. `.env.local`의 `NEXT_PUBLIC_SITE_URL`이
-`http://localhost:3000`이면 **배포된 자료의 공유 링크도 localhost를 가리킨다.**
-
-Next.js는 프로덕션 빌드에서 `.env.production.local`을 `.env.local`보다 먼저 읽는다.
-개발 설정을 그대로 둔 채 배포 값만 덮어쓰려면 이 파일을 쓴다.
-
-```bash
-# .env.production.local  (커밋하지 않는다)
-NEXT_PUBLIC_SITE_URL=https://<배포 도메인>
-```
-
 Supabase 값은 개발과 같은 프로젝트를 쓴다면 `.env.local`의 값이 그대로 적용된다.
+**배포 도메인은 미리 알 필요가 없다.** 공유 링크는 브라우저의 실제 주소로 만들어진다.
 
 #### 배포
 

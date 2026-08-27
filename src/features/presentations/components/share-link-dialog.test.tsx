@@ -35,6 +35,19 @@ function renderDialog(presentation: Presentation = PRESENTATION) {
   render(<ShareLinkDialog presentation={presentation} open onClose={vi.fn()} />);
 }
 
+/**
+ * 공유 주소는 브라우저의 실제 origin을 따른다.
+ * jsdom 기본값이 개발 주소와 같아서, 다른 값으로 바꿔야 실제로 따라가는지 확인할 수 있다.
+ */
+function stubOrigin(origin: string) {
+  const original = window.location;
+  Object.defineProperty(window, "location", {
+    configurable: true,
+    value: { ...original, origin },
+  });
+  return () => Object.defineProperty(window, "location", { configurable: true, value: original });
+}
+
 afterEach(() => {
   Reflect.deleteProperty(navigator, "clipboard");
 });
@@ -46,6 +59,20 @@ describe("ShareLinkDialog", () => {
     expect(screen.getByLabelText("공유 주소")).toHaveValue(
       `http://localhost:3000/share/${PRESENTATION.shareId}`,
     );
+  });
+
+  it("배포 도메인이 아니라 지금 보고 있는 주소로 링크를 만든다", () => {
+    // 빌드 시점에 배포 도메인을 몰라도 사용자가 받는 링크는 항상 맞아야 한다.
+    const restore = stubOrigin("https://web-slide.example.workers.dev");
+    try {
+      renderDialog();
+
+      expect(screen.getByLabelText("공유 주소")).toHaveValue(
+        `https://web-slide.example.workers.dev/share/${PRESENTATION.shareId}`,
+      );
+    } finally {
+      restore();
+    }
   });
 
   it("복사에 성공하면 안내를 보여준다", async () => {

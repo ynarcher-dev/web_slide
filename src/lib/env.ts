@@ -5,6 +5,8 @@ import { z } from "zod";
  * 비밀 값은 이 파일에 추가하지 않는다. 서버 전용 값이 필요하면 별도 모듈로 분리한다.
  */
 const envSchema = z.object({
+  // 공유 주소는 브라우저의 실제 origin으로 만든다. 이 값은 서버 렌더 결과의 대비값일 뿐이라
+  // 배포 도메인을 몰라도 되고, 틀려도 사용자가 보는 링크에는 영향이 없다.
   NEXT_PUBLIC_SITE_URL: z.url().default("http://localhost:3000"),
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),

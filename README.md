@@ -50,13 +50,13 @@ pnpm dev
 
 | 변수                                   | 필수   | 사용처                | 설명                                                                        |
 | -------------------------------------- | ------ | --------------------- | --------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL`                 | 예     | 런타임(브라우저·서버) | 공유 링크가 쓰는 절대 주소의 기준. 배포 도메인을 넣는다                     |
+| `NEXT_PUBLIC_SITE_URL`                 | 아니오 | 런타임(브라우저·서버) | 서버 렌더 결과의 대비값. 공유 링크는 브라우저의 실제 주소로 만든다          |
 | `NEXT_PUBLIC_SUPABASE_URL`             | 예     | 런타임(브라우저·서버) | Supabase 프로젝트 URL                                                       |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 예     | 런타임(브라우저·서버) | Supabase publishable 키. 브라우저에 노출되며 접근은 RLS로 제한한다          |
 | `SUPABASE_DB_URL`                      | 아니오 | 로컬 스크립트 전용    | 마이그레이션·타입 생성·RLS 검증 스크립트가 쓰는 직접 연결 문자열. 커밋 금지 |
 | `SUPABASE_ACCESS_TOKEN`                | 아니오 | 로컬 스크립트 전용    | 있으면 Docker 없이 `pnpm db:types`를 실행한다                               |
 
-`NEXT_PUBLIC_*` 세 개는 [src/lib/env.ts](src/lib/env.ts)에서 zod로 검증한다. 값이 없거나 형식이 틀리면 앱이 시작하면서 실패한다.
+`NEXT_PUBLIC_*`는 [src/lib/env.ts](src/lib/env.ts)에서 zod로 검증한다. Supabase 두 개는 필수이며 값이 없거나 형식이 틀리면 앱이 시작하면서 실패한다. `NEXT_PUBLIC_SITE_URL`은 기본값이 있어 없어도 된다.
 
 서버 전용 비밀 키(`service_role` 등)는 애플리케이션 런타임에서 사용하지 않는다.
 
@@ -136,17 +136,15 @@ pnpm cf:build
 pnpm cf:deploy
 ```
 
-준비물 두 가지가 있다.
+준비물이 하나 있다.
 
 - **Windows에서는 개발자 모드가 필요하다.** `cf:build`가 `node_modules`의 심볼릭 링크를 다시 만드는데,
   권한이 없으면 `EPERM ... symlink`로 멈춘다. 설정 → 시스템 → 개발자용에서 켠다.
   macOS, Linux와 Cloudflare 빌드 환경에는 이 제약이 없다.
-- **`.env.production.local`에 배포 도메인을 넣는다.** `NEXT_PUBLIC_SITE_URL`이 빌드에 박히므로,
-  `.env.local`의 localhost 값이 그대로 배포되면 공유 링크가 깨진다.
 
 ### 대시보드에서 배포
 
-Git 푸시로 자동 빌드하려면 빌드 명령을 `pnpm cf:build`로 두고, `NEXT_PUBLIC_*` 세 개를
+Git 푸시로 자동 빌드하려면 빌드 명령을 `pnpm cf:build`로 두고, `NEXT_PUBLIC_SUPABASE_*` 두 개를
 **빌드 변수**로 등록한다. 런타임 변수로는 동작하지 않고, 값이 없으면 빌드 중 환경 변수 검증이 실패한다.
 
 전체 절차와 제약은 [배포 문서](docs/technical/deployment.md)에 있다.

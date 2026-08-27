@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Button, ErrorMessage, Modal, TextField } from "@/components/ui";
+import { useMounted } from "@/lib/use-mounted";
 import type { Presentation } from "@/types/domain";
 import { buildShareUrl } from "../share-link";
 
@@ -18,12 +19,20 @@ type CopyState = "idle" | "copied" | "error";
  *
  * 공개 여부는 공통 설정에서 바꾸므로 여기서는 현재 상태만 알려 준다.
  * 비공개 상태에서도 주소는 보여 준다. 미리 복사해 두고 공개로 바꾸는 순서가 자연스럽기 때문이다.
+ *
+ * 주소의 기준은 지금 보고 있는 브라우저의 origin이다. 그래서 배포 도메인을 빌드 시점에
+ * 알 필요가 없다. `NEXT_PUBLIC_SITE_URL`은 하이드레이션 전 서버 렌더 결과에만 쓰이는 대비값이며,
+ * 사용자는 다이얼로그를 직접 열어야 주소를 보므로 항상 마운트 이후의 실제 주소를 본다.
  */
 export function ShareLinkDialog({ presentation, open, onClose }: ShareLinkDialogProps) {
   const [copyState, setCopyState] = useState<CopyState>("idle");
   const [lastOpen, setLastOpen] = useState(open);
   const inputRef = useRef<HTMLInputElement>(null);
-  const shareUrl = buildShareUrl(presentation.shareId);
+  const mounted = useMounted();
+  const shareUrl = buildShareUrl(
+    presentation.shareId,
+    mounted ? window.location.origin : undefined,
+  );
 
   // 다시 열었을 때 지난 복사 결과가 남아 있지 않게 한다.
   // effect 대신 렌더 중에 맞추면 한 번 더 그리지 않는다.
